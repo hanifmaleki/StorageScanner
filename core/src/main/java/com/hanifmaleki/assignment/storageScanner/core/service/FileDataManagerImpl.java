@@ -36,25 +36,8 @@ public class FileDataManagerImpl implements FileDataManager {
     public void getLatestFilesAndStore() {
         logger.debug("Fetching files");
         List<FileData> content = fetchContentService.getContent();
-        content.forEach(this::updateOrSave);
+        fileDataRepository.saveAll(content);
         logger.debug("{} files has been fetched", content.size());
-    }
-
-    public void updateOrSave(FileData fileData) {
-        FileData attachedFileData = fileDataRepository.findById(fileData.getAbsolutePath()).orElse(null);
-        if (attachedFileData == null) {
-            logger.debug("Save {}", fileData.getAbsolutePath());
-            fileDataRepository.save(fileData);
-        } else {
-            logger.debug("Update {}", fileData.getAbsolutePath());
-            attachedFileData.setFileSize(fileData.getFileSize());
-            attachedFileData.setFileName(fileData.getFileName());
-            attachedFileData.setExtension(fileData.getExtension());
-            attachedFileData.setFileType(fileData.getFileType());
-            attachedFileData.setModificationDate(fileData.getModificationDate());
-            attachedFileData.setParent(fileData.getParent());
-            attachedFileData.setScanDate(fileData.getScanDate());
-        }
     }
 
     @Override
