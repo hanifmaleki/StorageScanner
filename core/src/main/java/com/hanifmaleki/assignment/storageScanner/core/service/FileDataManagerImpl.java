@@ -1,6 +1,7 @@
 package com.hanifmaleki.assignment.storageScanner.core.service;
 
 import com.hanifmaleki.assignment.storageScanner.core.model.FileData;
+import com.hanifmaleki.assignment.storageScanner.core.model.TheInputPathIsIncorrectException;
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +34,13 @@ public class FileDataManagerImpl implements FileDataManager {
     @Override
     @Scheduled(fixedDelay = 60 * 1000)
     @Transactional
-    public void getLatestFilesAndStore() {
+    public void getLatestFilesAndStore() throws TheInputPathIsIncorrectException {
         logger.debug("Fetching files");
-        List<FileData> content = fetchContentService.getContent();
-        fileDataRepository.saveAll(content);
-        logger.debug("{} files has been fetched", content.size());
+        FileData fileData = fetchContentService.getContent();
+        if (fileData != null) {
+            fileDataRepository.saveHierarchy(fileData);
+            logger.debug("file {} has been fetched with total size {}", fileData.getAbsolutePath(), fileData.getFileName());
+        }
     }
 
     @Override

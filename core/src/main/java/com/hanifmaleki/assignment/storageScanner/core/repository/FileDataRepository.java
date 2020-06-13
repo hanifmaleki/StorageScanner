@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface FileDataRepository extends JpaRepository<FileData, String> {
+public interface FileDataRepository extends JpaRepository<FileData, String>, CustomFileDataRepository {
 
     List<FileData> findByFileType(FileType fileType, Sort sort);
 

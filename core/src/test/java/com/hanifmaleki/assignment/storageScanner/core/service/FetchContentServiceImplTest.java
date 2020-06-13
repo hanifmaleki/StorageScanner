@@ -2,7 +2,9 @@ package com.hanifmaleki.assignment.storageScanner.core.service;
 
 
 import com.hanifmaleki.assignment.storageScanner.core.model.FileData;
+import com.hanifmaleki.assignment.storageScanner.core.model.TheInputPathIsIncorrectException;
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -16,7 +18,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.hanifmaleki.assignment.storageScanner.core.model.FileType.FOLDER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
 @UnitTest
@@ -31,7 +35,8 @@ class FetchContentServiceImplTest {
 
 
     @Test
-    public void fetchContentTest() {
+    @DisplayName("Make a file structure and check the size of root folder to be calculated correctly")
+    public void fetchContentTest() throws TheInputPathIsIncorrectException {
         createTreeStructure();
         /*
         /var
@@ -47,26 +52,39 @@ class FetchContentServiceImplTest {
 
         fetchContentService.setFileRepository(fileRepository);
         fetchContentService.setSearchPath("/var");
-        List<FileData> content = fetchContentService.getContent();
+        FileData fileData = fetchContentService.getContent();
 
-        List<FileData> folder1List = content.stream().filter(it -> it.getAbsolutePath().equals("/var/folder1")).collect(Collectors.toList());
-        assertEquals(8, content.size());
-        assertEquals(1, folder1List.size());
-        assertEquals(1350, folder1List.get(0).getFileSize());
+
+        assertEquals(3, fileData.getChildren().size());
+        assertEquals(1750, fileData.getFileSize());
+        FileData folder1 = fileData.getChildren().stream().filter(it -> it.getFileType() == FOLDER).collect(Collectors.toList()).get(0);
+        assertEquals(1350, folder1.getFileSize());
+    }
+
+    @Test
+    @DisplayName("Fetch content of a non-existing path andexpect TheInputPathIsIncorrect exception")
+    public void fetchNotExistingPath() throws TheInputPathIsIncorrectException {
+        File notExistPath = new File("notExistPath");
+
+        Mockito.when(fileRepository.exists(any(File.class)))
+                .thenReturn(false);
+        fetchContentService.setFileRepository(fileRepository);
+        fetchContentService.setSearchPath(notExistPath.getAbsolutePath());
+        assertThrows(TheInputPathIsIncorrectException.class, () -> fetchContentService.getContent());
     }
 
     private void createTreeStructure() {
-        File file1 = createFileAndSetMock("/var/", "file1", "ext", 150L);
-        File file2 = createFileAndSetMock("/var/", "file2", "ext", 250L);
-        File folder1 = createFolderAndSetMock("/var/", "folder1");
+        File varFolder = new File("/var");
+        File file1 = createFileAndSetMock(varFolder, "file1", "ext", 150L);
+        File file2 = createFileAndSetMock(varFolder, "file2", "ext", 250L);
+        File folder1 = createFolderAndSetMock(varFolder, "folder1");
 
-        File file3 = createFileAndSetMock("/var/", "file3", "ext", 350L);
-        File folder2 = createFolderAndSetMock("/var/folder/", "folder2.ext");
-        File folder3 = createFolderAndSetMock("/var/folder/", "folder3.ext");
+        File file3 = createFileAndSetMock(varFolder, "file3", "ext", 350L);
+        File folder2 = createFolderAndSetMock(folder1, "folder2.ext");
+        File folder3 = createFolderAndSetMock(folder1, "folder3.ext");
 
-
-        File file4 = createFileAndSetMock("/var/folder/folder4.ext/", "file4", "ext", 450L);
-        File file5 = createFileAndSetMock("/var/folder/folder5.ext/", "file5", "", 550L);
+        File file4 = createFileAndSetMock(folder3, "file4", "ext", 450L);
+        File file5 = createFileAndSetMock(folder3, "file5", "", 550L);
 
 
         List<File> listFile1 = Arrays.asList(file1, file2, folder1);
@@ -74,8 +92,10 @@ class FetchContentServiceImplTest {
         List<File> listFile3 = Arrays.asList(file4, file5);
 
 
-        Mockito.when(fileRepository.getListOfFilesForPath(new File("/var")))
+        Mockito.when(fileRepository.getListOfFilesForPath(varFolder))
                 .thenReturn(listFile1);
+        Mockito.when(fileRepository.isDirectory(varFolder))
+                .thenReturn(true);
         Mockito.when(fileRepository.getListOfFilesForPath(folder1))
                 .thenReturn(listFile2);
         Mockito.when(fileRepository.getListOfFilesForPath(folder2))
@@ -86,9 +106,9 @@ class FetchContentServiceImplTest {
                 .thenReturn(true);
     }
 
-    private File createFileAndSetMock(String path, String filename, String extension, Long size) {
-        String pathName = String.format("%s%s.%s", path, filename, extension);
-        File file = new File(pathName);
+    private File createFileAndSetMock(File path, String filename, String extension, Long size) {
+        String fileName = String.format("%s.%s", filename, extension);
+        File file = new File(path, fileName);
         Mockito.lenient().doReturn(size)
                 .when(fileRepository)
                 .getSizeOf(file);
@@ -104,15 +124,14 @@ class FetchContentServiceImplTest {
         Mockito.lenient().doReturn(false)
                 .when(fileRepository)
                 .isDirectory(file);
-        Mockito.lenient().doReturn(pathName)
+        Mockito.lenient().doReturn(file.getAbsolutePath())
                 .when(fileRepository)
                 .getAbsolutePath(file);
         return file;
     }
 
-    private File createFolderAndSetMock(String path, String filename) {
-        String pathName = String.format("%s%s", path, filename);
-        File folder = new File(pathName);
+    private File createFolderAndSetMock(File path, String filename) {
+        File folder = new File(path, filename);
         Mockito.lenient().doReturn(filename)
                 .when(fileRepository)
                 .getName(folder);
@@ -122,7 +141,7 @@ class FetchContentServiceImplTest {
         Mockito.lenient().doReturn(true)
                 .when(fileRepository)
                 .isDirectory(folder);
-        Mockito.lenient().doReturn(pathName)
+        Mockito.lenient().doReturn(folder.getAbsolutePath())
                 .when(fileRepository)
                 .getAbsolutePath(folder);
         return folder;

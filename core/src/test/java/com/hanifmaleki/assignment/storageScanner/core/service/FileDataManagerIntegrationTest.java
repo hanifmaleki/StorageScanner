@@ -1,6 +1,7 @@
 package com.hanifmaleki.assignment.storageScanner.core.service;
 
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileDataRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -40,23 +41,24 @@ public class FileDataManagerIntegrationTest {
 
 
     @Test
-    void getFilesTest() throws IOException {
+    @DisplayName("Make a folder structure in memory and check the size of root folder to be calculated correctly")
+    void getFilesTest() throws Exception {
 
-        createNewFileWithSomeStringInsideAndReturnSize(tempDir, "file1");
+        int sum = createNewFileWithSomeStringInsideAndReturnSize(tempDir, "file1");
 
         File folder1 = new File(tempDir, "folder1");
         folder1.mkdir();
 
-        int sum = createNewFileWithSomeStringInsideAndReturnSize(folder1, "file2");
+        sum += createNewFileWithSomeStringInsideAndReturnSize(folder1, "file2");
 
         sum += createNewFileWithSomeStringInsideAndReturnSize(folder1, "file3");
 
         fetchContentService.setSearchPath(tempDir.getAbsolutePath());
         fileDataManager.getLatestFilesAndStore();
 
-        assertEquals(4, fileDataRepository.findAll().size());
+        assertEquals(5, fileDataRepository.findAll().size());
 
-        assertEquals(sum, fileDataManager.getFolders().get(0).getFileSize());
+        assertEquals(sum, fileDataManager.getFolders().stream().filter(it -> it.getAbsolutePath().equals(tempDir.getAbsolutePath())).findAny().get().getFileSize());
 
 
     }
