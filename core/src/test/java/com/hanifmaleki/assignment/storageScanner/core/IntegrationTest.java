@@ -1,4 +1,4 @@
-package com.hanifmaleki.assignment.storageScanner.core.service;
+package com.hanifmaleki.assignment.storageScanner.core;
 
 import org.junit.jupiter.api.Tag;
 

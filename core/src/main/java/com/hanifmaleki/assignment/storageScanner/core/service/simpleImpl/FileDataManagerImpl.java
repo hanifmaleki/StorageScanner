@@ -1,22 +1,24 @@
-package com.hanifmaleki.assignment.storageScanner.core.service;
+package com.hanifmaleki.assignment.storageScanner.core.service.simpleImpl;
 
 import com.hanifmaleki.assignment.storageScanner.core.model.FileData;
 import com.hanifmaleki.assignment.storageScanner.core.model.TheInputPathIsIncorrectException;
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileDataRepository;
+import com.hanifmaleki.assignment.storageScanner.core.service.AbstractFileDataManager;
+import com.hanifmaleki.assignment.storageScanner.core.service.FetchContentService;
+import com.hanifmaleki.assignment.storageScanner.core.service.FileDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static com.hanifmaleki.assignment.storageScanner.core.model.FileType.FOLDER;
+import static com.hanifmaleki.assignment.storageScanner.core.Profiles.SINGLE_THREAD;
 
 @Service
-public class FileDataManagerImpl implements FileDataManager {
+@Profile(SINGLE_THREAD)
+public class FileDataManagerImpl extends AbstractFileDataManager {
 
     private final Logger logger = LoggerFactory.getLogger(FileDataManager.class);
 
@@ -26,6 +28,7 @@ public class FileDataManagerImpl implements FileDataManager {
 
     @Autowired
     public FileDataManagerImpl(FetchContentService fetchContentService, FileDataRepository fileDataRepository) {
+        super(fileDataRepository);
         this.fetchContentService = fetchContentService;
         this.fileDataRepository = fileDataRepository;
     }
@@ -41,20 +44,6 @@ public class FileDataManagerImpl implements FileDataManager {
             fileDataRepository.saveHierarchy(fileData);
             logger.debug("file {} has been fetched with total size {}", fileData.getAbsolutePath(), fileData.getFileName());
         }
-    }
-
-    @Override
-    public List<FileData> getFolders() {
-        return fileDataRepository.findByFileType(FOLDER, Sort.by("fileName"));
-    }
-
-
-    @Override
-    public List<FileData> getSortedFilesOfType(String type) {
-        if (type == null || type.isEmpty()) {
-            return fileDataRepository.findByFileType(FOLDER, Sort.by("fileSize"));
-        }
-        return fileDataRepository.findByFileTypeOrExtension(FOLDER, type, Sort.by("fileSize"));
     }
 
 }

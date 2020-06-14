@@ -1,12 +1,16 @@
-package com.hanifmaleki.assignment.storageScanner.core.service;
+package com.hanifmaleki.assignment.storageScanner.core.service.simpleImpl;
 
+import com.hanifmaleki.assignment.storageScanner.core.IntegrationTest;
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileDataRepository;
+import com.hanifmaleki.assignment.storageScanner.core.service.FetchContentService;
+import com.hanifmaleki.assignment.storageScanner.core.service.FileDataManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
@@ -17,12 +21,14 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.hanifmaleki.assignment.storageScanner.core.Profiles.SINGLE_THREAD;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @IntegrationTest
+@ActiveProfiles(SINGLE_THREAD)
 public class FileDataManagerIntegrationTest {
 
     @Autowired

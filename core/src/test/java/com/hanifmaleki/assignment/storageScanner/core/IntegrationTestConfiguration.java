@@ -1,4 +1,4 @@
-package com.hanifmaleki.assignment.storageScanner.core.service;
+package com.hanifmaleki.assignment.storageScanner.core;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

@@ -1,15 +1,17 @@
-package com.hanifmaleki.assignment.storageScanner.core.service;
+package com.hanifmaleki.assignment.storageScanner.core.service.simpleImpl;
 
-
+import com.hanifmaleki.assignment.storageScanner.core.UnitTest;
 import com.hanifmaleki.assignment.storageScanner.core.model.FileData;
 import com.hanifmaleki.assignment.storageScanner.core.model.TheInputPathIsIncorrectException;
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileRepository;
+import com.hanifmaleki.assignment.storageScanner.core.service.FetchContentService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
 import java.util.Arrays;
@@ -18,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.hanifmaleki.assignment.storageScanner.core.Profiles.SINGLE_THREAD;
 import static com.hanifmaleki.assignment.storageScanner.core.model.FileType.FOLDER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,14 +28,13 @@ import static org.mockito.ArgumentMatchers.any;
 
 @UnitTest
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles(SINGLE_THREAD)
 class FetchContentServiceImplTest {
 
     @Mock
     FileRepository fileRepository;
 
-
     final FetchContentService fetchContentService = new FetchContentServiceImpl(fileRepository);
-
 
     @Test
     @DisplayName("Make a file structure and check the size of root folder to be calculated correctly")
@@ -62,15 +64,15 @@ class FetchContentServiceImplTest {
     }
 
     @Test
-    @DisplayName("Fetch content of a non-existing path andexpect TheInputPathIsIncorrect exception")
-    public void fetchNotExistingPath() throws TheInputPathIsIncorrectException {
+    @DisplayName("Fetch content of a non-existing path and expect TheInputPathIsIncorrect exception")
+    public void fetchNotExistingPath() {
         File notExistPath = new File("notExistPath");
 
         Mockito.when(fileRepository.exists(any(File.class)))
                 .thenReturn(false);
         fetchContentService.setFileRepository(fileRepository);
         fetchContentService.setSearchPath(notExistPath.getAbsolutePath());
-        assertThrows(TheInputPathIsIncorrectException.class, () -> fetchContentService.getContent());
+        assertThrows(TheInputPathIsIncorrectException.class, fetchContentService::getContent);
     }
 
     private void createTreeStructure() {
