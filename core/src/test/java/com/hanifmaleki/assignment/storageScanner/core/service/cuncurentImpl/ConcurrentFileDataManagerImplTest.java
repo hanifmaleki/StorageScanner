@@ -5,6 +5,7 @@ import com.hanifmaleki.assignment.storageScanner.core.model.TheInputPathIsIncorr
 import com.hanifmaleki.assignment.storageScanner.core.repository.FileDataRepository;
 import com.hanifmaleki.assignment.storageScanner.core.service.FetchContentService;
 import com.hanifmaleki.assignment.storageScanner.core.service.FileDataManager;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import static com.hanifmaleki.assignment.storageScanner.core.Profiles.MULTI_THRE
 @ExtendWith(SpringExtension.class)
 @IntegrationTest
 @ActiveProfiles(MULTI_THREAD)
+@Disabled
 class ConcurrentFileDataManagerImplTest {
 
     @Autowired
@@ -30,7 +32,7 @@ class ConcurrentFileDataManagerImplTest {
     @Test
         //TODO complete te test
     void getLatestFilesAndStore() throws TheInputPathIsIncorrectException {
-        fetchContentService.setSearchPath("C:\\tmp");
+        fetchContentService.setSearchPath("/");
         FileDataManager fileDataManager = new ConcurrentFileDataManagerImpl(fileDataRepository, fetchContentService);
 
         fileDataManager.getLatestFilesAndStore();
